@@ -5,29 +5,9 @@ module Middleman
   module CoreExtensions
     # API for watching file change events
     class FileWatcher < Extension
-      # Regexes in this list will filter out filenames of files that shouldn't cause file change notifications.
-      IGNORE_LIST = [
-        /^bin(\/|$)/,
-        /^\.bundle(\/|$)/,
-        /^vendor(\/|$)/,
-        /^node_modules(\/|$)/,
-        /^\.sass-cache(\/|$)/,
-        /^\.cache(\/|$)/,
-        /^\.git(\/|$)/,
-        /^\.gitignore$/,
-        /\.DS_Store/,
-        /^\.rbenv-.*$/,
-        /^Gemfile$/,
-        /^Gemfile\.lock$/,
-        /~$/,
-        /(^|\/)\.?#/,
-        /^tmp\//
-      ]
 
       def initialize(app, options_hash={}, &block)
         super
-
-        app.config.define_setting :file_watcher_ignore, IGNORE_LIST, 'Regexes for paths that should be ignored when they change.'
 
         # Directly include the #files method instead of using helpers so that this is available immediately
         app.send :include, InstanceMethods
@@ -39,8 +19,8 @@ module Middleman
       end
 
       def after_configuration
-        app.config[:file_watcher_ignore] << %r{^#{app.config[:build_dir]}(\/|$)}
         app.files.reload_path('.')
+        app.files.is_ready = true
       end
 
       module InstanceMethods
@@ -55,15 +35,51 @@ module Middleman
       class API
         attr_reader :app
         attr_reader :known_paths
+        attr_accessor :is_ready
+
         delegate :logger, to: :app
 
         # Initialize api and internal path cache
         def initialize(app)
           @app = app
           @known_paths = Set.new
+          @is_ready = false
 
-          @_changed = []
-          @_deleted = []
+          @watchers = {
+            :source  => Proc.new { |path, app| path.match(/^#{app.config[:source]}\//) },
+            :library => /^(lib|helpers)\/.*\.rb$/
+          }
+
+          @ignores = {
+            :emacs_files     => /(^|\/)\.?#/,
+            :tilde_files     => /~$/,
+            :ds_store        => /\.DS_Store\//,
+            :git             => /(^|\/)\.git(ignore|modules|\/)/
+          }
+
+          @changed = []
+          @deleted = []
+
+          @app.add_to_config_context :files, &method(:files_api)
+        end
+
+        # Expose self to config.
+        def files_api
+          self
+        end
+
+        # Add a proc to watch paths
+        def watch(name, regex=nil, &block)
+          @watchers[name] = block_given? ? block : regex
+
+          reload_path('.') if @is_ready
+        end
+
+        # Add a proc to ignore paths
+        def ignore(name, regex=nil, &block)
+          @ignores[name] = block_given? ? block : regex
+
+          reload_path('.') if @is_ready
         end
 
         # Add callback to be run on file change
@@ -71,8 +87,8 @@ module Middleman
         # @param [nil,Regexp] matcher A Regexp to match the change path against
         # @return [Array<Proc>]
         def changed(matcher=nil, &block)
-          @_changed << [block, matcher] if block_given?
-          @_changed
+          @changed << [block, matcher] if block_given?
+          @changed
         end
 
         # Add callback to be run on file deletion
@@ -80,8 +96,8 @@ module Middleman
         # @param [nil,Regexp] matcher A Regexp to match the deleted path against
         # @return [Array<Proc>]
         def deleted(matcher=nil, &block)
-          @_deleted << [block, matcher] if block_given?
-          @_deleted
+          @deleted << [block, matcher] if block_given?
+          @deleted
         end
 
         # Notify callbacks that a file changed
@@ -150,7 +166,19 @@ module Middleman
         # @return [Boolean]
         def ignored?(path)
           path = path.to_s
-          app.config[:file_watcher_ignore].any? { |r| path =~ r }
+          
+          watched = @watchers.values.any? { |validator| matches?(validator, path) }
+          not_ignored = @ignores.values.none? { |validator| matches?(validator, path) }
+
+          return !(watched && not_ignored)
+        end
+
+        def matches?(validator, path)
+          if validator.is_a? Regexp
+            validator.match(path)
+          else
+            validator.call(path, @app)
+          end
         end
 
         protected

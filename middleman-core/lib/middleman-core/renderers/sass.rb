@@ -57,6 +57,11 @@ module Middleman
           ::Compass::ImportOnce.activate!
 
           require 'middleman-core/renderers/sass_functions'
+
+          app.before_configuration do
+            files.watch :sass_cache, /(^|\/)\.sass-cache\//
+          end
+
         end
 
         alias_method :included, :registered

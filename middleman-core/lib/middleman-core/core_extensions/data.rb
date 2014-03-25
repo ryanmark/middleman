@@ -27,6 +27,11 @@ module Middleman
         app.files.deleted MATCHER do |file|
           data.remove_file(file) if file.start_with?("#{config[:data_dir]}/")
         end
+
+        # Tell the file watcher to observe the :data_dir
+        app.files.watch :data do |path, app|
+          path.match(/^#{app.config[:data_dir]}\/.*(json|yml|yaml)$/)
+        end
       end
 
       module InstanceMethods

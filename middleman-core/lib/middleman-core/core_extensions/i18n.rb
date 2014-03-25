@@ -27,9 +27,16 @@ class Middleman::CoreExtensions::Internationalization < ::Middleman::Extension
   end
 
   def after_configuration
-    app.files.reload_path(app.config[:locales_dir] || options[:data])
+    locales_file_path = app.config[:locales_dir] || options[:data]
 
-    @locales_glob = File.join(app.config[:locales_dir] || options[:data], '**', '*.{rb,yml,yaml}')
+    # Tell the file watcher to observe the :locales_dir
+    app.files.watch :locales do |path, app|
+      path.match(/^#{locales_file_path}\/.*(yml|yaml)$/)
+    end
+
+    app.files.reload_path(locales_file_path)
+
+    @locales_glob = File.join(locales_file_path, '**', '*.{rb,yml,yaml}')
     @locales_regex = convert_glob_to_regex(@locales_glob)
 
     @maps = {}
