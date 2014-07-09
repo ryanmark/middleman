@@ -177,9 +177,11 @@ module Middleman
         file = File.expand_path(file, @app.root)
 
         prefix = @app.source_dir.sub(/\/$/, '') + '/'
-        return false unless file.start_with?(prefix)
+        shared_prefix = @app.shared_source_dir.sub(/\/$/, '') + '/'
+        return false unless file.start_with?(prefix) || file.start_with?(shared_prefix)
 
-        path = file.sub(prefix, '')
+        path = file.sub(prefix, '') if file.start_with?(prefix)
+        path = file.sub(shared_prefix, '') if file.start_with?(shared_prefix)
 
         # Replace a file name containing automatic_directory_matcher with a folder
         unless @app.config[:automatic_directory_matcher].nil?

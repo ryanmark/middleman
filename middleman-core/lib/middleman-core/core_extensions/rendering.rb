@@ -448,6 +448,7 @@ module Middleman
           cache.fetch(:resolve_template, request_path, options) do
             relative_path = Util.strip_leading_slash(request_path)
             on_disk_path  = File.expand_path(relative_path, source_dir)
+            on_disk_shared_path = File.expand_path(relative_path, shared_source_dir)
 
             preferred_engines = if options[:try_static]
               [nil]
@@ -476,9 +477,16 @@ module Middleman
               path_with_ext = on_disk_path.dup
               path_with_ext << ('.' + preferred_engine) unless preferred_engine.nil?
 
+              shared_path_with_ext = on_disk_shared_path.dup
+              shared_path_with_ext << ('.' + preferred_engine) unless preferred_engine.nil?
+
               paths = [path_with_ext]
               if options[:try_without_underscore]
                 paths << path_with_ext.sub(relative_path, relative_path.sub(/^_/, '').sub(/\/_/, '/'))
+                paths << shared_path_with_ext
+                paths << shared_path_with_ext.sub(relative_path, relative_path.sub(/^_/, '').sub(/\/_/, '/'))
+              else
+                paths << shared_path_with_ext
               end
               paths
             end
