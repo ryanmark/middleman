@@ -71,6 +71,10 @@ module Middleman
     # @return [String]
     config.define_setting :source,      'source', 'Name of the source directory'
 
+    # Name of the shared source directory
+    # @return [String]
+    config.define_setting :shared_source,      'shared/source', 'Name of the shared source directory'
+
     # Middleman environment. Defaults to :development, set to :build by the build process
     # @return [String]
     config.define_setting :environment, ((ENV['MM_ENV'] && ENV['MM_ENV'].to_sym) || :development), 'Middleman environment. Defaults to :development, set to :build by the build process'
@@ -214,6 +218,13 @@ module Middleman
     # @return [String]
     def source_dir
       File.join(root, config[:source])
+    end
+
+    # The full path to the shared source directory
+    #
+    # @return [String]
+    def shared_source_dir
+      File.join(root, config[:shared_source])
     end
 
     delegate :instrument, to: ::Middleman::Util
