@@ -36,7 +36,10 @@ module Middleman
           partials: proc { |file| file =~ %r{/_[^_]} },
 
           layout: proc { |file, sitemap_app|
-            file.start_with?(File.join(sitemap_app.config[:source], 'layout.')) || file.start_with?(File.join(sitemap_app.config[:source], 'layouts/'))
+            file.start_with?(File.join(sitemap_app.config[:source], 'layout.')) ||
+              file.start_with?(File.join(sitemap_app.config[:source], 'layouts/')) ||
+              file.start_with?(File.join(sitemap_app.config[:shared_source], 'layout.')) ||
+              file.start_with?(File.join(sitemap_app.config[:shared_source], 'layouts/'))
           }
         }, 'Callbacks that can exclude paths from the sitemap'
 
