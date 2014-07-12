@@ -227,6 +227,13 @@ module Middleman
       File.join(root, config[:shared])
     end
 
+    # The Pathname-addressed path to the shared project
+    #
+    # @return [String]
+    def shared_root_path
+      File.join(root_path, config[:shared])
+    end
+
     # The full path to the shared source directory
     #
     # @return [String]
