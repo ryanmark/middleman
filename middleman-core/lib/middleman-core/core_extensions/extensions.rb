@@ -46,6 +46,9 @@ module Middleman
           app.config.define_setting :autoload_sprockets, true, 'Automatically load sprockets at startup?'
           app.config[:autoload_sprockets] = (ENV['AUTOLOAD_SPROCKETS'] == 'true') if ENV['AUTOLOAD_SPROCKETS']
 
+          app.config.define_setting :load_shared_config, true, 'Load config.rb from the shared project?'
+          app.config[:load_shared_config] = (ENV['LOAD_SHARED_CONFIG'] == 'true') if ENV['LOAD_SHARED_CONFIG']
+
           app.extend ClassMethods
           app.send :include, InstanceMethods
           app.delegate :configure, to: :"self.class"
@@ -156,7 +159,7 @@ module Middleman
           run_hook :before_configuration
 
           # Check for and evaluate shared configuration
-          shared_config = File.join(root, 'shared', 'config.rb')
+          shared_config = File.join(shared_root, 'config.rb')
           if File.exist? shared_config
             logger.debug '== Reading:  shared config'
             instance_eval File.read(shared_config), shared_config, 1
