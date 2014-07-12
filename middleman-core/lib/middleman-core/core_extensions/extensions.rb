@@ -155,6 +155,13 @@ module Middleman
 
           run_hook :before_configuration
 
+          # Check for and evaluate shared configuration
+          shared_config = File.join(root, 'shared', 'config.rb')
+          if File.exist? shared_config
+            logger.debug '== Reading:  shared config'
+            instance_eval File.read(shared_config), shared_config, 1
+          end
+
           # Check for and evaluate local configuration
           local_config = File.join(root, 'config.rb')
           if File.exist? local_config
