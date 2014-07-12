@@ -38,8 +38,8 @@ module Middleman
           layout: proc { |file, sitemap_app|
             file.start_with?(File.join(sitemap_app.config[:source], 'layout.')) ||
               file.start_with?(File.join(sitemap_app.config[:source], 'layouts/')) ||
-              file.start_with?(File.join(sitemap_app.config[:shared_source], 'layout.')) ||
-              file.start_with?(File.join(sitemap_app.config[:shared_source], 'layouts/'))
+              file.start_with?(File.join(sitemap_app.config[:shared], sitemap_app.config[:source], 'layout.')) ||
+              file.start_with?(File.join(sitemap_app.config[:shared], sitemap_app.config[:source], 'layouts/'))
           }
         }, 'Callbacks that can exclude paths from the sitemap'
 
