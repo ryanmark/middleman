@@ -12,7 +12,7 @@ class Padrino::Helpers::OutputHelpers::ErbHandler
     raw = block.call(*args)
     captured = template.instance_variable_get(:@_out_buf)
     self.output_buffer = _buf_was
-    engine_matches?(block) ? captured : raw
+    engine_matches?(block) && !captured.empty? ? captured : raw
   end
 end
 
@@ -36,7 +36,6 @@ class Middleman::CoreExtensions::DefaultHelpers < ::Middleman::Extension
 
   # The helpers
   helpers do
-
     # Make all block content html_safe
     # rubocop:disable Semicolon
     def content_tag(name, content=nil, options=nil, &block)

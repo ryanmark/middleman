@@ -22,7 +22,7 @@ desc 'Pushes repository to GitHub'
 task :push do
   puts 'Pushing to github...'
   sh "git tag v#{Middleman::VERSION}"
-  sh 'git push origin master'
+  sh 'git push'
   sh "git push origin v#{Middleman::VERSION}"
 end
 
@@ -43,10 +43,11 @@ end
 
 desc 'Run tests for all middleman gems'
 task :test do
+  Rake::Task['rubocop'].invoke
+
   GEM_PATHS.each do |g|
     Dir.chdir("#{File.join(ROOT, g)}") { sh "#{Gem.ruby} -S rake test" }
   end
-  Rake::Task['rubocop'].invoke
 end
 
 desc 'Run specs for all middleman gems'

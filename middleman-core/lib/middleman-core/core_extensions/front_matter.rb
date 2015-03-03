@@ -61,7 +61,14 @@ module Middleman::CoreExtensions
       # @private
       # @return [Hash]
       def raw_data
-        app.extensions[:frontmatter].data(source_file).first
+        data = app.extensions[:frontmatter].data(source_file).first
+
+        if proxy?
+          url_data = app.extensions[:frontmatter].data(File.join(app.source_dir, url).chomp('/')).first
+          data     = data.deep_merge(url_data)
+        end
+
+        data
       end
 
       # This page's frontmatter
@@ -176,7 +183,14 @@ module Middleman::CoreExtensions
 
       return [data, nil] if !app.files.exists?(full_path) || ::Middleman::Util.binary?(full_path)
 
-      content = File.read(full_path)
+      # Avoid weird race condition when a file is renamed.
+      content = begin
+        File.read(full_path)
+      rescue ::EOFError
+      rescue ::IOError
+      rescue ::Errno::ENOENT
+        ''
+      end
 
       begin
         if content =~ /\A.*coding:/

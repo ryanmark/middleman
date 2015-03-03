@@ -1,6 +1,40 @@
 master
 ===
 
+3.3.10
+===
+* Fixes #1469, missing `cattr_accessor` in Redcarpet support.
+* Fix slim >= 3.0.0 deprecation warning
+
+3.3.9
+===
+* Moved main `Application` from requiring to autoloading to work around some double-loading issues in Docker.
+
+3.3.8
+===
+* Define a mime type for sourcemaps. #1451
+* Asset hashing for image references in srcset 
+* Import patch to bugfix from Padrino Helpers #1401
+* Better URI encoding and decoding #1406
+* Update version of i18n
+
+3.3.7
+===
+* Update new project template Gemfile to use HTTPS by default. #1372
+
+3.3.6
+===
+
+* Use full paths instead of relative for `listen` gem. Fixes #1374
+* Add force option to "middleman init". #1369
+* Configuration addition for compass 1 compatibility.
+* Catch File read exceptions in frontmatter.
+* Remove duplicate attr_accessor. Closes #1352
+* Update sass dependency to >= 3.4.0.
+* Update compass dependency to >= 1.0.0, < 2.0.0
+* Accept pandoc-style YAML frontmatter. #1350
+* Add webp to image type lists.
+
 3.3.5
 ===
 

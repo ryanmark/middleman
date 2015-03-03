@@ -68,7 +68,7 @@ module Middleman
       # @return [String]
       def normalize_path(path)
         # The tr call works around a bug in Ruby's Unicode handling
-        path.sub(%r{^/}, '').tr('', '')
+        URI.decode(path).sub(%r{^/}, '').tr('', '')
       end
 
       # This is a separate method from normalize_path in case we
@@ -144,7 +144,7 @@ module Middleman
           path_or_resource.url
         else
           path_or_resource.dup
-        end.gsub(' ', '%20')
+        end
 
         # Try to parse URL
         begin
@@ -169,20 +169,20 @@ module Middleman
         if path_or_resource.is_a?(::Middleman::Sitemap::Resource)
           resource = path_or_resource
           resource_url = url
-        elsif this_resource && uri.path
+        elsif this_resource && uri.path && !uri.host
           # Handle relative urls
           url_path = Pathname(uri.path)
           current_source_dir = Pathname('/' + this_resource.path).dirname
           url_path = current_source_dir.join(url_path) if url_path.relative?
           resource = app.sitemap.find_resource_by_path(url_path.to_s)
           resource_url = resource.url if resource
-        elsif options[:find_resource] && uri.path
+        elsif options[:find_resource] && uri.path && !uri.host
           resource = app.sitemap.find_resource_by_path(uri.path)
           resource_url = resource.url if resource
         end
 
         if resource
-          uri.path = relative_path_from_resource(this_resource, resource_url, effective_relative)
+          uri.path = URI.encode(relative_path_from_resource(this_resource, resource_url, effective_relative))
         else
           # If they explicitly asked for relative links but we can't find a resource...
           raise "No resource exists at #{url}" if relative

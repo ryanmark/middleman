@@ -5,8 +5,6 @@ require 'middleman-core/logger'
 # rubocop:disable GlobalVars
 module Middleman
   module PreviewServer
-    DEFAULT_PORT = 4567
-
     class << self
       attr_reader :app, :host, :port
       delegate :logger, to: :app
@@ -15,8 +13,6 @@ module Middleman
       # @return [void]
       def start(opts={})
         @options = opts
-        @host = @options[:host] || '0.0.0.0'
-        @port = @options[:port] || DEFAULT_PORT
 
         mount_instance(new_app)
         logger.info "== The Middleman is standing watch at http://#{host}:#{port}"
@@ -92,6 +88,7 @@ module Middleman
 
       def new_app
         opts = @options.dup
+
         server = ::Middleman::Application.server
 
         # Add in the meta pages application
@@ -107,7 +104,14 @@ module Middleman
           )
 
           config[:environment] = opts[:environment].to_sym if opts[:environment]
+          config[:host] = opts[:host] if opts[:host]
+          config[:port] = opts[:port] if opts[:port]
         end
+
+        @host = @app.config[:host]
+        @port = @app.config[:port]
+
+        @app
       end
 
       def start_file_watcher
@@ -208,8 +212,12 @@ module Middleman
       # @param [Array<String>] paths Array of paths to check
       # @return [Boolean] Whether the server needs to reload
       def needs_to_reload?(paths)
+        relative_paths = paths.map do |p|
+          Pathname(p).relative_path_from(Pathname(app.root)).to_s
+        end
+
         match_against = [
-          %r{^config\.rb},
+          %r{^config\.rb$},
           %r{^lib/[^\.](.*)\.rb$},
           %r{^helpers/[^\.](.*)\.rb$}
         ]
@@ -220,7 +228,7 @@ module Middleman
           end
         end
 
-        paths.any? do |path|
+        relative_paths.any? do |path|
           match_against.any? do |matcher|
             path =~ matcher
           end
