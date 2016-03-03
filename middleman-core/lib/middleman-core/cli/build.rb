@@ -138,7 +138,9 @@ module Middleman::Cli
         base.remove_file f, force: true
       end
 
-      Dir[@build_dir.join('**', '*')].select { |d| File.directory?(d) }.each do |d|
+      ::Middleman::Util.glob_directory(@build_dir.join('**', '*'))
+        .select { |d| File.directory?(d) }
+        .each do |d|
         base.remove_file d, force: true if directory_empty? d
       end
     end
@@ -165,7 +167,7 @@ module Middleman::Cli
       paths = ::Middleman::Util.all_files_under(@build_dir).map(&:realpath).select(&:file?)
 
       @to_clean += paths.select do |path|
-        path.to_s !~ /\/\./ || path.to_s =~ /\.(htaccess|htpasswd)/
+        path.relative_path_from(@build_dir.realpath).to_s !~ /\/\./ || path.to_s =~ /\.(htaccess|htpasswd)/
       end
 
       return unless RUBY_PLATFORM =~ /darwin/

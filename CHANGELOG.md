@@ -1,6 +1,39 @@
 master
 ===
 
+3.4.1
+===
+
+* Adapt to upstream hooks API change, fixing `after_render` hook bugs. (#1658)
+* Add a bunch of requires to help Windows users.
+* Refator Data Loader to prevent middleman from crashing due to invalid data file. (#1633)
+* Add `before_server` hook.
+
+3.4.0
+===
+
+* Fix webrick restarts on Ruby 2.2
+* Empower link_to in a i18n context.
+* Add retina files support on automatic_image_sizes
+* Fix woff/woff2 confusion in asset hashing.
+* Support `relative: false` on `stylesheet_link_tag` and `javascript_include_tag`
+* New host detection in preview server. Provides better externally accessible host/ip information for connecting from mobile devices and virtual machines.
+
+3.3.12
+===
+* The preview server can now serve over HTTPS using the `--https` flag. It will use an automatic self-signed cert which can be overridden using `--ssl_certificate` and `--ssl_private_key`. These settings can also be set in `config.rb`
+* The preview server URL will use the local hostname rather than '0.0.0.0'. It will also print out a URL based on the host's public IP in case that's useful.
+* The `--host` flag and `config.rb` setting have been removed - the preview server will always bind to all interfaces.
+
+3.3.11
+===
+* Add `srcset` option to `image_tag`. Also enables them in Markdown.
+* Add jruby to the list of envs requiring tzinfo-data.
+* Don't lookup resource for path if the path is absolute. Fixes #1195
+* Make preview host and port configurable in config.rb and also expose those variables to extensions which are curious. Closes #1477
+* Append assets hash to .woff2 files
+* Rack support has been broken since v3.3.9, fix that. #1501
+
 3.3.10
 ===
 * Fixes #1469, missing `cattr_accessor` in Redcarpet support.
@@ -13,7 +46,7 @@ master
 3.3.8
 ===
 * Define a mime type for sourcemaps. #1451
-* Asset hashing for image references in srcset 
+* Asset hashing for image references in srcset
 * Import patch to bugfix from Padrino Helpers #1401
 * Better URI encoding and decoding #1406
 * Update version of i18n

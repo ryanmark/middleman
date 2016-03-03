@@ -21,7 +21,7 @@ class Middleman::Extensions::CacheBuster < ::Middleman::Extension
     # asset_url override if we're using cache busting
     # @param [String] path
     # @param [String] prefix
-    def asset_url(path, prefix='')
+    def asset_url(path, prefix='', options={})
       http_path = super
 
       if http_path.include?('://') || !%w(.css .png .jpg .jpeg .svg .svgz .webp .js .gif).include?(File.extname(http_path))
@@ -43,7 +43,7 @@ class Middleman::Extensions::CacheBuster < ::Middleman::Extension
           else
             # It's a template, possible with partials. We can't really
             # know when it's updated, so generate fresh cache buster every
-            # time during developement
+            # time during development
             http_path << '?' + Time.now.strftime('%s')
           end
         end

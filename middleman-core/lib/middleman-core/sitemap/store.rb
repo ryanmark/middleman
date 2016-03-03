@@ -54,7 +54,7 @@ module Middleman
         rebuild_resource_list!(:registered_new)
       end
 
-      # Rebuild the list of resources from scratch, using registed manipulators
+      # Rebuild the list of resources from scratch, using registered manipulators
       # rubocop:disable UnusedMethodArgument
       # @return [void]
       def rebuild_resource_list!(reason=nil)
@@ -99,7 +99,7 @@ module Middleman
         end
       end
 
-      # Invalidate our cached view of resource that are not ingnored. If your extension
+      # Invalidate our cached view of resource that are not ignored. If your extension
       # adds ways to ignore files, you should call this to make sure #resources works right.
       def invalidate_resources_not_ignored_cache!
         @resources_not_ignored = nil
@@ -213,30 +213,31 @@ module Middleman
 
           @app.logger.debug '== Rebuilding resource list'
 
-          @resources = @resource_list_manipulators.reduce([]) do |result, (_, inst)|
-            newres = inst.manipulate_resource_list(result)
+          @resources = []
+
+          @resource_list_manipulators.each do |(_, inst)|
+            @resources = inst.manipulate_resource_list(@resources)
 
             # Reset lookup cache
             reset_lookup_cache!
-            newres.each do |resource|
+            
+            @resources.each do |resource|
               @_lookup_by_path[resource.path] = resource
               @_lookup_by_destination_path[resource.destination_path] = resource
             end
 
-            newres
+            invalidate_resources_not_ignored_cache!
           end
-
-          invalidate_resources_not_ignored_cache!
         end
       end
 
       private
 
       def reset_lookup_cache!
-        @lock.synchronize {
+        @lock.synchronize do
           @_lookup_by_path = {}
           @_lookup_by_destination_path = {}
-        }
+        end
       end
 
       # Removes the templating extensions, while keeping the others
@@ -244,7 +245,7 @@ module Middleman
       # @return [String]
       def remove_templating_extensions(path)
         # Strip templating extensions as long as Tilt knows them
-        path = path.sub(File.extname(path), '') while ::Tilt[path]
+        path = path.sub(/#{::Regexp.escape(File.extname(path))}$/, '') while ::Tilt[path]
         path
       end
 

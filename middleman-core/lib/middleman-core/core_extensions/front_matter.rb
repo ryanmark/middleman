@@ -5,7 +5,7 @@ require 'pathname'
 require 'yaml'
 
 # Parsing JSON frontmatter
-require 'active_support/json'
+require 'json'
 
 # Extensions namespace
 module Middleman::CoreExtensions
@@ -101,7 +101,7 @@ module Middleman::CoreExtensions
         data, content = frontmatter_and_content(p)
 
         if app.files.exists?("#{path}.frontmatter")
-          external_data, _ = frontmatter_and_content("#{p}.frontmatter")
+          external_data, = frontmatter_and_content("#{p}.frontmatter")
           data = external_data.deep_merge(data)
         end
 
@@ -154,7 +154,7 @@ module Middleman::CoreExtensions
 
         begin
           json = ($1 + $2).sub(';;;', '{').sub(';;;', '}')
-          data = ActiveSupport::JSON.decode(json).symbolize_keys
+          data = JSON.parse(json).symbolize_keys
         rescue => e
           app.logger.error "JSON Exception parsing #{full_path}: #{e.message}"
           return false
@@ -185,7 +185,7 @@ module Middleman::CoreExtensions
 
       # Avoid weird race condition when a file is renamed.
       content = begin
-        File.read(full_path)
+        read_data_file(full_path)
       rescue ::EOFError
       rescue ::IOError
       rescue ::Errno::ENOENT
@@ -206,6 +206,15 @@ module Middleman::CoreExtensions
       end
 
       [data, content]
+    end
+
+    def read_data_file(path)
+      data = File.open(path, 'rb') { |io| io.read }
+      if data.respond_to?(:force_encoding)
+        # Set it to the default external (without verifying)
+        data.force_encoding(Encoding.default_external) if Encoding.default_external
+      end
+      data
     end
 
     def normalize_path(path)

@@ -112,7 +112,7 @@ module Middleman
         end
       end
 
-      # Get a recusive list of files inside a path.
+      # Get a recursive list of files inside a path.
       # Works with symlinks.
       #
       # @param path Some path string or Pathname
@@ -220,6 +220,30 @@ module Middleman
         else
           '/' + normalize_path(path)
         end
+      end
+
+      # Glob a directory and try to keep path encoding consistent.
+      #
+      # @param [String] path The glob path.
+      # @return [Array<String>]
+      def glob_directory(path)
+        results = ::Dir[path]
+
+        return results unless RUBY_PLATFORM =~ /darwin/
+
+        results.map { |r| r.encode('UTF-8', 'UTF-8-MAC') }
+      end
+
+      # Get the PWD and try to keep path encoding consistent.
+      #
+      # @param [String] path The glob path.
+      # @return [Array<String>]
+      def current_directory
+        result = ::Dir.pwd
+
+        return result unless RUBY_PLATFORM =~ /darwin/
+
+        result.encode('UTF-8', 'UTF-8-MAC')
       end
 
       private

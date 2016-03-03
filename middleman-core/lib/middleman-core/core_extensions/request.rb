@@ -4,6 +4,7 @@ require 'rack/file'
 require 'rack/lint'
 require 'rack/head'
 
+require 'middleman-core/application'
 require 'middleman-core/util'
 
 module Middleman
@@ -23,6 +24,9 @@ module Middleman
 
           # Sourcemap format
           ::Rack::Mime::MIME_TYPES['.map'] = 'application/json; charset=utf-8'
+
+          # Create a MIME type for PHP files (for detection by extensions)
+          ::Rack::Mime::MIME_TYPES['.php'] = 'text/php'
 
           app.extend ClassMethods
           app.extend ServerMethods
@@ -169,8 +173,8 @@ module Middleman
         def current_path=(path)
           Thread.current[:current_path] = path
           Thread.current[:legacy_request] = ::Thor::CoreExt::HashWithIndifferentAccess.new(
-                                                                                             path: path,
-                                                                                             params: req ? ::Thor::CoreExt::HashWithIndifferentAccess.new(req.params) : {}
+            path: path,
+            params: req ? ::Thor::CoreExt::HashWithIndifferentAccess.new(req.params) : {}
           )
         end
 

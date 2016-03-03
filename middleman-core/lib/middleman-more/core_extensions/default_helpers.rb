@@ -1,14 +1,22 @@
 require 'padrino-helpers'
+require 'padrino-helpers/asset_tag_helpers'
+require 'padrino-helpers/form_helpers'
+require 'padrino-helpers/format_helpers'
+require 'padrino-helpers/number_helpers'
+require 'padrino-helpers/output_helpers'
+require 'padrino-helpers/render_helpers'
+require 'padrino-helpers/tag_helpers'
 
 # Don't fail on invalid locale, that's not what our current
 # users expect.
 ::I18n.enforce_available_locales = false
 
-class Padrino::Helpers::OutputHelpers::ErbHandler
+class ::Padrino::Helpers::OutputHelpers::ErbHandler
   # Force Erb capture not to use safebuffer
   # rubocop:disable UnderscorePrefixedVariableName
   def capture_from_template(*args, &block)
-    self.output_buffer, _buf_was = '', output_buffer
+    self.output_buffer = ''
+    _buf_was = output_buffer
     raw = block.call(*args)
     captured = template.instance_variable_get(:@_out_buf)
     self.output_buffer = _buf_was
@@ -98,6 +106,36 @@ class Middleman::CoreExtensions::DefaultHelpers < ::Middleman::Extension
       end
     end
 
+    # Override helper to add `relative` opt-out.
+    def stylesheet_link_tag(*sources)
+      options = {
+        rel: 'stylesheet'
+      }.update(sources.extract_options!.symbolize_keys)
+
+      path_options = {}
+      path_options[:relative] = options.delete(:relative) if options.key?(:relative)
+
+      sources.flatten.inject(ActiveSupport::SafeBuffer.new) do |all, source|
+        all << tag(:link, {
+          href: asset_path(:css, source, path_options)
+        }.update(options))
+      end
+    end
+
+    # Override helper to add `relative` opt-out.
+    def javascript_include_tag(*sources)
+      options = sources.extract_options!.symbolize_keys
+
+      path_options = {}
+      path_options[:relative] = options.delete(:relative) if options.key?(:relative)
+
+      sources.flatten.inject(::ActiveSupport::SafeBuffer.new) do |all, source|
+        all << content_tag(:script, nil, {
+          src: asset_path(:js, source, path_options)
+        }.update(options))
+      end
+    end
+
     # Output a stylesheet link tag based on the current path
     #
     # @param [Symbol] asset_ext The type of asset
@@ -152,8 +190,9 @@ class Middleman::CoreExtensions::DefaultHelpers < ::Middleman::Extension
     #
     # @param [Symbol] kind The type of file
     # @param [String] source The path to the file
+    # @param [Hash] options Additional options.
     # @return [String]
-    def asset_path(kind, source)
+    def asset_path(kind, source, options={})
       return source if source.to_s.include?('//') || source.to_s.start_with?('data:')
       asset_folder = case kind
       when :css
@@ -173,28 +212,41 @@ class Middleman::CoreExtensions::DefaultHelpers < ::Middleman::Extension
       source << ".#{kind}" unless ignore_extension || source.end_with?(".#{kind}")
       asset_folder = '' if source.start_with?('/') # absolute path
 
-      asset_url(source, asset_folder)
+      asset_url(source, asset_folder, options)
     end
 
     # Get the URL of an asset given a type/prefix
     #
     # @param [String] path The path (such as "photo.jpg")
     # @param [String] prefix The type prefix (such as "images")
+    # @param [Hash] options Additional options.
     # @return [String] The fully qualified asset url
-    def asset_url(path, prefix='')
+    def asset_url(path, prefix='', options={})
       # Don't touch assets which already have a full path
       if path.include?('//') || path.start_with?('data:')
         path
       else # rewrite paths to use their destination path
-        if resource = sitemap.find_resource_by_destination_path(url_for(path))
+        result = if resource = sitemap.find_resource_by_destination_path(url_for(path))
           resource.url
         else
           path = File.join(prefix, path)
+
           if resource = sitemap.find_resource_by_path(path)
             resource.url
           else
             File.join(config[:http_prefix], path)
           end
+        end
+
+        if options[:relative] != true
+          result
+        else
+          unless current_resource
+            raise ArgumentError, "#asset_url must be run in a context with current_resource if relative: true"
+          end
+
+          current_dir = Pathname('/' + current_resource.destination_path)
+          Pathname(result).relative_path_from(current_dir.dirname).to_s
         end
       end
     end
@@ -254,6 +306,27 @@ class Middleman::CoreExtensions::DefaultHelpers < ::Middleman::Extension
     def form_tag(url, options={}, &block)
       url = url_for(url, options)
       super
+    end
+
+    # Modified Padrino image_tag so that it finds the paths for srcset
+    # using asset_path for the images listed in the srcset param
+    def image_tag(path, params={})
+      params.symbolize_keys!
+
+      if params.key?(:srcset)
+        images_sources = params[:srcset].split(',').map do |src_def|
+          if src_def.include?('//')
+            src_def
+          else
+            image_def, size_def = src_def.strip.split(/\s+/)
+            asset_path(:images, image_def) + ' ' + size_def
+          end
+        end
+
+        params[:srcset] = images_sources.join(', ')
+      end
+
+      super(path, params)
     end
   end
 end

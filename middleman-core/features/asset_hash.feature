@@ -47,6 +47,15 @@ Feature: Assets get a file hash appended to their and references to them are upd
     And the file "subdir/api.json" should contain 'images/100px-5fd6fb90.jpg'
     And the file "subdir/api.json" should contain 'images/100px-1242c368.png'
 
+  Scenario: Hashed fonts assets work with woff and woff2 extension
+    Given a successfully built app at "asset-hash-app"
+    When I cd to "build"
+    Then the following files should exist:
+      | fonts/fontawesome-webfont-56ce13e7.woff |
+      | fonts/fontawesome-webfont-10752316.woff2 |
+    And the file "stylesheets/uses_fonts-88aa3e2b.css" should contain "src: url('../fonts/fontawesome-webfont-10752316.woff2')"
+    And the file "stylesheets/uses_fonts-88aa3e2b.css" should contain "url('../fonts/fontawesome-webfont-56ce13e7.woff')"
+
   Scenario: Hashed assets work in preview server
     Given the Server is running at "asset-hash-app"
     When I go to "/"
@@ -75,6 +84,13 @@ Feature: Assets get a file hash appended to their and references to them are upd
     Then I should see 'images/100px-5fd6fb90.gif'
     And I should see 'images/100px-5fd6fb90.jpg'
     And I should see 'images/100px-1242c368.png'
+
+  Scenario: Hashed assets work with Slim
+    Given the Server is running at "asset-hash-app"
+    When I go to "/slim.html"
+    And I should see 'src="images/300px-59adce76.jpg"'
+    And I should see 'src="images/100px-5fd6fb90.jpg"'
+    And I should see 'srcset="images/100px-5fd6fb90.jpg 1x, images/200px-c11eb203.jpg 2x, images/300px-59adce76.jpg 3x"'
 
   Scenario: Enabling an asset host still produces hashed files and references
     Given the Server is running at "asset-hash-host-app"

@@ -11,13 +11,22 @@ module Middleman::Cli
                   aliases: '-e',
                   default: ENV['MM_ENV'] || ENV['RACK_ENV'] || 'development',
                   desc: 'The environment Middleman will run under'
-    method_option :host,
-                  type: :string,
-                  aliases: '-h',
-                  desc: 'Bind to HOST address'
     method_option :port,
                   aliases: '-p',
                   desc: 'The port Middleman will listen on'
+    method_option :server_name,
+                  aliases: '-s',
+                  desc: 'The server name Middleman will use'
+    method_option :bind_address,
+                  aliases: '-b',
+                  desc: 'The bind address Middleman will listen on'
+    method_option :https,
+                  type: :boolean,
+                  desc: 'Serve the preview server over SSL/TLS'
+    method_option :ssl_certificate,
+                  desc: 'Path to an X.509 certificate to use for the preview server'
+    method_option :ssl_private_key,
+                  desc: "Path to an RSA private key for the preview server's certificate"
     method_option :verbose,
                   type: :boolean,
                   default: false,
@@ -56,13 +65,17 @@ module Middleman::Cli
       unless ENV['MM_ROOT']
         puts '== Could not find a Middleman project config.rb'
         puts '== Treating directory as a static site to be served'
-        ENV['MM_ROOT'] = Dir.pwd
+        ENV['MM_ROOT'] = ::Middleman::Util.current_directory
         ENV['MM_SOURCE'] = ''
       end
 
       params = {
         port: options['port'],
-        host: options['host'],
+        bind_address: options['bind_address'],
+        https: options['https'],
+        server_name: options['server_name'],
+        ssl_certificate: options['ssl_certificate'],
+        ssl_private_key: options['ssl_private_key'],
         environment: options['environment'],
         debug: options['verbose'],
         instrumenting: options['instrument'],

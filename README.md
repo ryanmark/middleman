@@ -2,7 +2,7 @@
 
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/middleman/middleman?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-**Middleman** is a static site generator using all the shortcuts and tools in modern web development. Check out [middlemanapp.com](http://middlemanapp.com/) for detailed tutorials, including a [getting started guide](http://middlemanapp.com/basics/getting-started/). You can also follow [@middlemanapp](https://twitter.com/middlemanapp) for updates.
+**Middleman** is a static site generator using all the shortcuts and tools in modern web development. Check out [middlemanapp.com](http://middlemanapp.com/) for detailed tutorials, including a [getting started guide](https://middlemanapp.com/basics/install/). You can also follow [@middlemanapp](https://twitter.com/middlemanapp) for updates.
 
 ## Why Middleman?
 
@@ -19,7 +19,7 @@ These days, many websites are built with an API in mind. Rather than package the
 
 ## Installation
 
-Middleman is built on Ruby and uses the RubyGems package manager for installation. These are usually pre-installed on Mac OS X and Linux. Windows users can install both using [RubyInstaller].
+Middleman is built on Ruby and uses the [RubyGems package manager] (https://rubygems.org/pages/download) for installation. These are usually pre-installed on Mac OS X and Linux. Windows users can install both using [RubyInstaller].
 
 ```
 gem install middleman
@@ -91,7 +91,7 @@ The best way to get quick responses to your issues and swift fixes to your bugs 
 
 ## Donate
 
-[Click here to lend your support to Middleman](https://spacebox.io/s/4dXbHBorC3)
+Help support the Middleman team [with a donation](https://plasso.co/s/4dXbHBorC3).
 
 ## Versioning
 

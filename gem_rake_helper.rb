@@ -1,4 +1,3 @@
-require 'rubygems' unless defined?(Gem)
 require 'rake'
 require 'yard'
 
@@ -21,15 +20,7 @@ Cucumber::Rake::Task.new do |t|
   exempt_tags << '--tags ~@encoding' unless Object.const_defined?(:Encoding)
   exempt_tags << '--tags ~@nowindows' if Gem.win_platform?
   exempt_tags << '--tags ~@travishatesme' if ENV['TRAVIS'] == 'true'
-  t.cucumber_opts = "--color #{exempt_tags.join(' ')} --strict --format #{ENV['CUCUMBER_FORMAT'] || 'Fivemat'}"
-end
-
-Cucumber::Rake::Task.new(:cucumber_wip) do |t|
-  exempt_tags = ['--tags @wip']
-  exempt_tags << '--tags ~@nojava' if RUBY_PLATFORM == 'java'
-  exempt_tags << '--tags ~@encoding' unless Object.const_defined?(:Encoding)
-  exempt_tags << '--tags ~@nowindows' if Gem.win_platform?
-  t.cucumber_opts = "--color #{exempt_tags.join(' ')} --strict --format #{ENV['CUCUMBER_FORMAT'] || 'Fivemat'}"
+  t.cucumber_opts = "--require features --color #{exempt_tags.join(' ')} --strict"# --format #{ENV['CUCUMBER_FORMAT'] || 'Fivemat'}"
 end
 
 require 'rspec/core/rake_task'
@@ -39,8 +30,12 @@ RSpec::Core::RakeTask.new do |spec|
   spec.rspec_opts = ['--color', '--format documentation']
 end
 
+test_tasks = []
+test_tasks << :spec     if Dir.exists? 'spec'
+test_tasks << :cucumber if Dir.exists? 'features'
+
 desc 'Run tests, both RSpec and Cucumber'
-task test: [:spec, :cucumber]
+task test: test_tasks
 
 YARD::Rake::YardocTask.new
 
